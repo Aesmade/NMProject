@@ -1,0 +1,11 @@
+{% if uploadsucc %}
+Upload successful!<br />
+{% endif %}
+<form action="" enctype="multipart/form-data" method="POST">
+{% csrf_token %}
+Base stations: <input type="file" name="bsobjects" /><br />
+Battery: <input type="file" name="batteryobjects" /><br />
+GPS: <input type="file" name="gpsobjects" /><br />
+Wifi: <input type="file" name="wifiobjects" /><br />
+<input type="submit" />
+</form>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jQuery UI Datepicker - Default functionality</title>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script>
+  $(function() {
+    $( "#datepicker1" ).datepicker({ dateFormat: 'dd/mm/yy' });
+    $( "#datepicker2" ).datepicker({ dateFormat: 'dd/mm/yy' });
+    $( "#datepicker3" ).datepicker({ dateFormat: 'dd/mm/yy' });
+    $( "#datepicker4" ).datepicker({ dateFormat: 'dd/mm/yy' });
+  });
+  </script>
+</head>
+<body>
+ 
+<form action="{% url 'webapp:showuser' %}" method="post">
+{% csrf_token %}
+<select name="user">
+{% for u in object_list %}
+<option value="{{ u.email }}">{{ u.email }}</option>
+{% endfor %}
+</select>
+<p>Start date: <input type="text" id="datepicker1" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<p>End date: <input type="text" id="datepicker2" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<input type="submit" value="Go" />
+</form> 
+<br /><br />
+<form action="{% url 'webapp:stay' %}" method="post">
+{% csrf_token %}
+<select name="user">
+{% for u in object_list %}
+<option value="{{ u.email }}">{{ u.email }}</option>
+{% endfor %}
+</select>
+<p>Dmax: <input type="text" pattern="\d+" title="Enter a number" name="dmax" /></p>
+<p>Tmin: <input type="text" pattern="\d+" title="Enter a number" name="tmin" /></p>
+<p>Tmax: <input type="text" pattern="\d+" title="Enter a number" name="tmax" /></p>
+<p>Start date: <input type="text" id="datepicker3" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<p>End date: <input type="text" id="datepicker4" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<input type="submit" value="Go" />
+</form> 
+</body>
+</html>
