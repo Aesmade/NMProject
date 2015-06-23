@@ -4,6 +4,7 @@ from django.views.generic import ListView
 from models import *
 from django.db import transaction
 from chartit import DataPool, Chart
+from sklearn.cluster import DBSCAN
 import django.utils.timezone
 import django.core.exceptions
 import django.db.models
@@ -35,10 +36,6 @@ class UserList(ListView):
         context = super(ListView, self).get_context_data(**kwargs)
         context['curdate'] = datetime.datetime.now()
         return context
-
-
-def index(request):
-    return HttpResponse("hello world")
 
 
 def saveobjects(data, name):
@@ -157,33 +154,44 @@ def centroid(points):
     return sum(lats)/len(lats), sum(lons)/len(lons), points[0].timestamp, points[-1].timestamp
 
 
+def clusterarea(points):
+    z = zip(*points)
+    lats = z[0]
+    lons = z[1]
+    return sum(lats)/len(lats), sum(lons)/len(lons), min(lats), min(lons), max(lats), max(lons)
+
+
+def haversine(p1, p2):
+    #haversine formula - find distance between two (lat, long) pairs
+    r = 6371000
+    f1 = p1.latitude * math.pi / 180
+    f2 = p2.latitude * math.pi / 180
+    df = (p1.latitude-p2.latitude) * math.pi / 180
+    dl = (p1.longitude-p2.longitude) * math.pi / 180
+    a = math.sin(df/2)**2 + math.cos(f1)*math.cos(f2)*math.sin(dl/2)**2
+    c = 2*math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return r*c
+
+
 def find_stay_points(points, dmax, tmin, tmax):
     lsp = []
     i = 0
-    while i < len(points)-1:
-        for j in range(i+1, len(points)):
-            #haversine formula - find distance between two (lat, long) pairs
-            r = 6371000
-            f1 = points[i].latitude * math.pi / 180
-            f2 = points[j].latitude * math.pi / 180
-            df = (points[i].latitude-points[j].latitude) * math.pi / 180
-            dl = (points[i].longitude-points[j].longitude) * math.pi / 180
-            a = math.sin(df/2)**2 + math.cos(f1)*math.cos(f2)*math.sin(dl/2)**2
-            c = 2*math.atan2(math.sqrt(a), math.sqrt(1-a))
-            dist = r*c
+    n = len(points)
+    while i < n-1:
+        for j in range(i+1, n):
             if points[j].timestamp-points[j-1].timestamp > tmax:
                 if points[j-1].timestamp-points[i].timestamp > tmin:
                     lsp.append(centroid(points[i:j]))
                 i = j
                 break
-            elif dist > dmax:
+            elif haversine(points[i], points[j]) > dmax:
                 if points[j-1].timestamp-points[i].timestamp > tmin:
                     lsp.append(centroid(points[i:j]))
                     i = j
                     break
                 i += 1
                 break
-            elif j == len(points)-1:
+            elif j == n-1:
                 if points[j].timestamp-points[i].timestamp > tmin:
                     lsp.append(centroid(points[i:]))
                 i = j
@@ -192,7 +200,6 @@ def find_stay_points(points, dmax, tmin, tmax):
 
 
 def stay(request):
-    u = request.POST.get("user", "")
     strstart = request.POST.get("start", "01/01/1990")
     strend = request.POST.get("end", "01/01/2100")
     try:
@@ -203,7 +210,32 @@ def stay(request):
         tmax = datetime.timedelta(hours=int(request.POST.get("tmax", 10)))
     except ValueError:
         return HttpResponse("Only numbers allowed!")
-    print dmax, tmin, tmax, sdate, edate
-    points = GPSStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by("timestamp")
-    lsp = find_stay_points(points, dmax, tmin, tmax)
-    return render(request, "webapp/staypoints.html", {"lsp": lsp})
+    if "stay" in request.POST:
+        u = request.POST.get("user", "")
+        points = GPSStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by("timestamp")
+        lsp = find_stay_points(points, dmax, tmin, tmax)
+        return render(request, "webapp/staypoints.html", {"lsp": lsp})
+    elif "poi" in request.POST:
+        lsp = []
+        for u in GPSStatus.objects.all().values("email").distinct():
+            p = GPSStatus.objects.\
+                filter(email=u['email'], timestamp__gte=sdate, timestamp__lte=edate).order_by("timestamp")
+            lsp += find_stay_points(list(p), dmax, tmin, tmax)
+        if len(lsp) > 0:
+            try:
+                epsv = float(request.POST.get("eps", 0.01))
+                minpts = int(request.POST.get("minpts", 5))
+            except ValueError:
+                return HttpResponse("Only numbers allowed!")
+            lsp2 = [(x[0], x[1]) for x in lsp]
+            db = DBSCAN(eps=epsv, min_samples=minpts).fit(lsp2)
+            clust = [[] for i in range(max(db.labels_) + 1)]
+            for i, val in enumerate(db.labels_):
+                if val != -1:
+                    clust[val].append(lsp2[i])
+            areas = [clusterarea(x) for x in clust]
+            return render(request, "webapp/clusters.html", {"areas": areas})
+        else:
+            return HttpResponse("No stay points found")
+    else:
+        return HttpResponse("No action selected")

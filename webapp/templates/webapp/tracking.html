@@ -11,16 +11,30 @@
 	function map_init_basic (map, options) {
 		var wifiicon = new L.icon({iconUrl: '{% static "webapp/wifi.ico" %}'});
 		var bssicon = new L.icon({iconUrl: '{% static "webapp/bss.gif" %}'});
-		var markers = [{% for i in wifi %}new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.frequency }}Hz'}),{% endfor %}]
-		{% for i in bss %}
-		markers.push(new L.marker([{{ i.latitude }}, {{ i.longitude }}], {riseOnHover: true, title: 'Operator = {{ i.operator }}, MCC = {{ i.mcc }}, MNC = {{ i.mnc }}, CID = {{ i.cid }}, LAC = {{ i.lac }}', icon: bssicon}));
+		var markers = [];
+		{% for i in wifi %}
+		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.frequency }}Hz'}).addTo(map));
 		{% endfor %}
-		latlngs = [{% for i in gps %}new L.LatLng({{ i.latitude }}, {{ i.longitude }}),{% endfor %}];
-		var polyline = L.polyline(latlngs, {color: 'red'});
+		{% for i in bss %}
+		markers.push(new L.marker([{{ i.latitude }}, {{ i.longitude }}], {riseOnHover: true, title: 'Operator = {{ i.operator }}, MCC = {{ i.mcc }}, MNC = {{ i.mnc }}, CID = {{ i.cid }}, LAC = {{ i.lac }}', icon: bssicon}).addTo(map));
+		{% endfor %}
+		latlngs = [];
+		{% for i in gps %}
+		latlngs.push(new L.LatLng({{ i.latitude }}, {{ i.longitude }}));
+		{% endfor %}
+		var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 		markers.push(polyline);
 		var feats = L.featureGroup(markers);
-		feats.addTo(map);
-		map.fitBounds(feats.getBounds().pad(0.2));
+		var sw = feats.getBounds().getSouthWest(), ne = feats.getBounds().getNorthEast();
+		if (Math.abs(sw.lat - ne.lat) < 0.002) {
+			sw.lat -= 0.001;
+			ne.lat += 0.001;
+		}
+		if (Math.abs(sw.lon - ne.lon) < 0.002) {
+			sw.lon -= 0.001;
+			ne.lon += 0.001;
+		}
+		map.fitBounds(L.latLngBounds(sw, ne));
     }
     </script>
     {% leaflet_js %}
@@ -29,6 +43,6 @@
 <body>
 {% leaflet_map "yourmap" callback="window.map_init_basic" %}
 <br />
-<div id='container'></div>
+<div id="container" style="width:95%"></div>
 </body>
 </html>

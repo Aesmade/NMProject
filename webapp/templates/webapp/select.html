@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="width:100%;height:100%">
 <head>
   <meta charset="utf-8">
-  <title>jQuery UI Datepicker - Default functionality</title>
+  <title>hello world</title>
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -16,9 +16,10 @@
   });
   </script>
 </head>
-<body>
- 
-<form action="{% url 'webapp:showuser' %}" method="post">
+<body style="height:100%">
+<div style="width:100%;height:100%">
+<div style="float:left;width:20%;height:100%">
+<form action="{% url 'webapp:showuser' %}" method="post" target="tframe">
 {% csrf_token %}
 <select name="user">
 {% for u in object_list %}
@@ -29,20 +30,28 @@
 <p>End date: <input type="text" id="datepicker2" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <input type="submit" value="Go" />
 </form> 
-<br /><br />
-<form action="{% url 'webapp:stay' %}" method="post">
+<hr />
+<form action="{% url 'webapp:stay' %}" method="post" target="tframe">
 {% csrf_token %}
-<select name="user">
-{% for u in object_list %}
-<option value="{{ u.email }}">{{ u.email }}</option>
-{% endfor %}
-</select>
 <p>Dmax (meters): <input type="text" pattern="\d+" title="Enter a number" name="dmax" value="10000" /></p>
 <p>Tmin (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmin" value="12" /></p>
 <p>Tmax (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmax" value="72" /></p>
 <p>Start date: <input type="text" id="datepicker3" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <p>End date: <input type="text" id="datepicker4" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
-<input type="submit" value="Go" />
-</form> 
+<select name="user">
+{% for u in object_list %}
+<option value="{{ u.email }}">{{ u.email }}</option>
+{% endfor %}
+</select>&nbsp;<input type="submit" value="Show stay points" name="stay" />
+<br /><br />
+<p>Epsilon: <input type="text" pattern="[0-9]+([\.|,][0-9]+)?" title="Enter a floating point number" name="eps" value="0.01" /></p>
+<p>Minimum points: <input type="text" pattern="\d+" title="Enter a number" name="minpts" value="5" /></p>
+<input type="submit" value="Show points of interest for all users" name="poi" />
+</form>
+</div>
+<div style="float:right;width:80%;height:100%">
+<iframe src="" style="height:100%;width:100%" name="tframe"></iframe>
+</div>
+</div>
 </body>
 </html>
