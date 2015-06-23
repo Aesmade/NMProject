@@ -26,7 +26,7 @@
 <option value="{{ u.email }}">{{ u.email }}</option>
 {% endfor %}
 </select>
-<p>Start date: <input type="text" id="datepicker1" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<p>Start date: <input type="text" id="datepicker1" name="start" value="{{ olddate|date:'d/m/Y' }}" readonly /></p>
 <p>End date: <input type="text" id="datepicker2" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <input type="submit" value="Go" />
 </form> 
@@ -36,7 +36,7 @@
 <p>Dmax (meters): <input type="text" pattern="\d+" title="Enter a number" name="dmax" value="10000" /></p>
 <p>Tmin (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmin" value="12" /></p>
 <p>Tmax (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmax" value="72" /></p>
-<p>Start date: <input type="text" id="datepicker3" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
+<p>Start date: <input type="text" id="datepicker3" name="start" value="{{ olddate|date:'d/m/Y' }}" readonly /></p>
 <p>End date: <input type="text" id="datepicker4" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <select name="user">
 {% for u in object_list %}

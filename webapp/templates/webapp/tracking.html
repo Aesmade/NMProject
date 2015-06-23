@@ -9,8 +9,8 @@
 {{ chart|load_charts:"container" }}
 <script>
 	function map_init_basic (map, options) {
-		var wifiicon = new L.icon({iconUrl: '{% static "webapp/wifi.ico" %}'});
-		var bssicon = new L.icon({iconUrl: '{% static "webapp/bss.gif" %}'});
+		var wifiicon = new L.icon({iconUrl: '{% static "webapp/ap.ico" %}', iconSize: [15, 15]});
+		var bssicon = new L.icon({iconUrl: '{% static "webapp/bss.ico" %}', iconSize: [25, 25]});
 		var markers = [];
 		{% for i in wifi %}
 		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.frequency }}Hz'}).addTo(map));

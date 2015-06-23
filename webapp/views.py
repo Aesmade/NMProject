@@ -35,6 +35,7 @@ class UserList(ListView):
     def get_context_data(self, **kwargs):
         context = super(ListView, self).get_context_data(**kwargs)
         context['curdate'] = datetime.datetime.now()
+        context['olddate'] = datetime.datetime(year=2015, month=1, day=1)
         return context
 
 
