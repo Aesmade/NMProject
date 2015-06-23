@@ -41,8 +41,12 @@
     {% leaflet_css %}
 </head>
 <body>
-{% leaflet_map "yourmap" callback="window.map_init_basic" %}
+{% leaflet_map "trackingmap" callback="window.map_init_basic" %}
+<script type="text/javascript">
+$("#trackingmap").height($(window).height()*60/100).width($(window).width()*90/100);
+map.invalidateSize();
+</script>
 <br />
-<div id="container" style="width:95%"></div>
+<div id="container" style="width:95%;height:50%"></div>
 </body>
 </html>

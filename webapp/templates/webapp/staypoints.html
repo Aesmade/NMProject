@@ -28,6 +28,10 @@
     {% leaflet_css %}
 </head>
 <body>
-{% leaflet_map "yourmap" callback="window.map_init_basic" %}
+{% leaflet_map "staymap" callback="window.map_init_basic" %}
+<script type="text/javascript">
+$("#staymap").height($(window).height()*90/100).width($(window).width()*90/100);
+map.invalidateSize();
+</script>
 </body>
 </html>
