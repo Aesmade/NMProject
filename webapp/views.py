@@ -146,15 +146,15 @@ def show(request):
          'yAxis': {'max': 100}},
         x_sortf_mapf_mts=(None, lambda i: i.astimezone(UTC0030()).strftime("%d-%m-%y %H:%M"), False))
 
-    return render(request, "webapp/show1st.html", {"wifi": wifires, "gps": gpsres, "bss": bssres, "chart": cht})
+    return render(request, "webapp/tracking.html", {"wifi": wifires, "gps": gpsres, "bss": bssres, "chart": cht})
 
 
 def centroid(points):
     if len(points) == 0:
-        return 0.0, 0.0
+        return 0.0, 0.0, 0, 0
     lats = [x.latitude for x in points]
     lons = [x.longitude for x in points]
-    return sum(lats)/len(lats), sum(lons)/len(lons)
+    return sum(lats)/len(lats), sum(lons)/len(lons), points[0].timestamp, points[-1].timestamp
 
 
 def find_stay_points(points, dmax, tmin, tmax):
@@ -162,12 +162,21 @@ def find_stay_points(points, dmax, tmin, tmax):
     i = 0
     while i < len(points)-1:
         for j in range(i+1, len(points)):
+            #haversine formula - find distance between two (lat, long) pairs
+            r = 6371000
+            f1 = points[i].latitude * math.pi / 180
+            f2 = points[j].latitude * math.pi / 180
+            df = (points[i].latitude-points[j].latitude) * math.pi / 180
+            dl = (points[i].longitude-points[j].longitude) * math.pi / 180
+            a = math.sin(df/2)**2 + math.cos(f1)*math.cos(f2)*math.sin(dl/2)**2
+            c = 2*math.atan2(math.sqrt(a), math.sqrt(1-a))
+            dist = r*c
             if points[j].timestamp-points[j-1].timestamp > tmax:
                 if points[j-1].timestamp-points[i].timestamp > tmin:
                     lsp.append(centroid(points[i:j]))
                 i = j
                 break
-            elif (points[i].latitude-points[j].latitude)**2 + (points[i].longitude-points[j].longitude)**2 > dmax:
+            elif dist > dmax:
                 if points[j-1].timestamp-points[i].timestamp > tmin:
                     lsp.append(centroid(points[i:j]))
                     i = j
@@ -176,7 +185,7 @@ def find_stay_points(points, dmax, tmin, tmax):
                 break
             elif j == len(points)-1:
                 if points[j].timestamp-points[i].timestamp > tmin:
-                    lsp.append(centroid(points[i:j+1]))
+                    lsp.append(centroid(points[i:]))
                 i = j
                 break
     return lsp
@@ -189,7 +198,7 @@ def stay(request):
     try:
         sdate = datetime.datetime(*time.strptime(strstart, "%d/%m/%Y")[:3], tzinfo=UTC0030())
         edate = datetime.datetime(*time.strptime(strend, "%d/%m/%Y")[:3], tzinfo=UTC0030())
-        dmax = int(request.POST.get("dmax", 10))**2
+        dmax = int(request.POST.get("dmax", 10))
         tmin = datetime.timedelta(hours=int(request.POST.get("tmin", 10)))
         tmax = datetime.timedelta(hours=int(request.POST.get("tmax", 10)))
     except ValueError:

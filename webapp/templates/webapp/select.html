@@ -37,9 +37,9 @@
 <option value="{{ u.email }}">{{ u.email }}</option>
 {% endfor %}
 </select>
-<p>Dmax: <input type="text" pattern="\d+" title="Enter a number" name="dmax" /></p>
-<p>Tmin: <input type="text" pattern="\d+" title="Enter a number" name="tmin" /></p>
-<p>Tmax: <input type="text" pattern="\d+" title="Enter a number" name="tmax" /></p>
+<p>Dmax (meters): <input type="text" pattern="\d+" title="Enter a number" name="dmax" value="10000" /></p>
+<p>Tmin (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmin" value="12" /></p>
+<p>Tmax (hours): <input type="text" pattern="\d+" title="Enter a number" name="tmax" value="72" /></p>
 <p>Start date: <input type="text" id="datepicker3" name="start" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <p>End date: <input type="text" id="datepicker4" name="end" value="{{ curdate|date:'d/m/Y' }}" readonly /></p>
 <input type="submit" value="Go" />

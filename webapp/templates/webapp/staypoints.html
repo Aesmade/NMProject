@@ -1,3 +1,22 @@
-{% for i in lsp %}
-{{ i.0 }}, {{ i.1 }}<br />
-{% endfor %}
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+{% load staticfiles %}
+{% load leaflet_tags %}
+<script>
+	function map_init_basic (map, options) {
+		var markers = [{% for i in lsp %}new L.marker([{{ i.0 }}, {{ i.1 }}], {riseOnHover: true, title: 'Stayed from {{ i.2 }} to {{ i.3 }}'}),{% endfor %}]
+		var feats = L.featureGroup(markers);
+		feats.addTo(map);
+		map.fitBounds(feats.getBounds().pad(0.2));
+    }
+    </script>
+    {% leaflet_js %}
+    {% leaflet_css %}
+</head>
+<body>
+{% leaflet_map "yourmap" callback="window.map_init_basic" %}
+</body>
+</html>
