@@ -5,6 +5,7 @@ from models import *
 from django.db import transaction
 from chartit import DataPool, Chart
 from sklearn.cluster import DBSCAN
+import django.db.models
 import django.utils.timezone
 import django.core.exceptions
 import django.db.models
@@ -215,7 +216,10 @@ def stay(request):
         u = request.POST.get("user", "")
         points = GPSStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by("timestamp")
         lsp = find_stay_points(points, dmax, tmin, tmax)
-        return render(request, "webapp/staypoints.html", {"lsp": lsp})
+        if len(lsp) > 0:
+            return render(request, "webapp/staypoints.html", {"lsp": lsp})
+        else:
+            return HttpResponse("No stay points found")
     elif "poi" in request.POST:
         lsp = []
         for u in GPSStatus.objects.all().values("email").distinct():
@@ -240,3 +244,36 @@ def stay(request):
             return HttpResponse("No stay points found")
     else:
         return HttpResponse("No action selected")
+
+
+def stats(request):
+    lowperhour = BatteryStatus.objects.filter(level__lt=15).extra({"hour": "(strftime(\"%H\", \"timestamp\")+3)%24"}).\
+        values('hour').annotate(c=django.db.models.Count('rid'))
+    ds = DataPool(
+        series=
+        [{'options': {
+            'source': lowperhour},
+          'terms': [
+              'c',
+              'hour']}
+        ])
+
+    cht = Chart(
+        datasource=ds,
+        series_options=
+        [{'options': {
+            'type': 'area',
+            'stacking': False},
+          'terms': {
+              'hour': [
+                  'c']
+          }}],
+        chart_options=
+        {'title': {
+            'text': 'Battery level'},
+         'xAxis': {
+             'title': {
+                 'text': 'Timestamp'}},
+         'yAxis': {'max': 100}}
+    )
+    return render(request, "webapp/status.html", {"batterychart": cht})

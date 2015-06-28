@@ -8,4 +8,6 @@ urlpatterns = [
     url(r'^upload/$', views.upload, name="upload"),
     url(r'^show/$', views.show, name="showuser"),
     url(r'^staypoints/$', views.stay, name="stay"),
+    url(r'^stats/lowbattery/$', views.stay, name="lowbattery"),
+    url(r'^stats/$', views.stats, name="stats"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

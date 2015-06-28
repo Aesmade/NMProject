@@ -48,6 +48,8 @@
 <p>Minimum points: <input type="text" pattern="\d+" title="Enter a number" name="minpts" value="5" /></p>
 <input type="submit" value="Show points of interest for all users" name="poi" />
 </form>
+<hr />
+<a href="{% url 'webapp:stats' %}">Show stats</a>
 </div>
 <div style="float:right;width:80%;height:100%">
 <iframe src="" style="height:100%;width:100%" name="tframe"></iframe>
