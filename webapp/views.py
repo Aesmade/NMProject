@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.http.response import HttpResponse
 from django.views.generic import ListView
+from django.db.models import Count
+from django.db.models.functions import Lower
 from models import *
 from django.db import transaction
-from chartit import DataPool, Chart
 from sklearn.cluster import DBSCAN
 import django.db.models
 import django.utils.timezone
@@ -96,7 +97,6 @@ def upload(request):
                             wp.save()
                             wsset = WifiStatus.objects.filter(bssid=wkey)
                             wsset.update(realpos=wp)
-                            #wsset.save()
                         except ZeroDivisionError:
                             print "Error finding access point position"
     return render(request, "webapp/upload.html", {"uploadsucc": uploaded})
@@ -117,35 +117,9 @@ def show(request):
 
     sr = BatteryStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by('timestamp')
 
-    ds = DataPool(
-        series=
-        [{'options': {
-            'source': sr},
-          'terms': [
-              'timestamp',
-              'level']}
-        ])
+    data = map(lambda i: [i.timestamp.astimezone(UTC0030()).strftime("%d-%m-%y %H:%M"), i.level], sr)
 
-    cht = Chart(
-        datasource=ds,
-        series_options=
-        [{'options': {
-            'type': 'area',
-            'stacking': False},
-          'terms': {
-              'timestamp': [
-                  'level']
-          }}],
-        chart_options=
-        {'title': {
-            'text': 'Battery level'},
-         'xAxis': {
-             'title': {
-                 'text': 'Timestamp'}},
-         'yAxis': {'max': 100}},
-        x_sortf_mapf_mts=(None, lambda i: i.astimezone(UTC0030()).strftime("%d-%m-%y %H:%M"), False))
-
-    return render(request, "webapp/tracking.html", {"wifi": wifires, "gps": gpsres, "bss": bssres, "chart": cht})
+    return render(request, "webapp/tracking.html", {"wifi": wifires, "gps": gpsres, "bss": bssres, "data": data})
 
 
 def centroid(points):
@@ -247,33 +221,19 @@ def stay(request):
 
 
 def stats(request):
-    lowperhour = BatteryStatus.objects.filter(level__lt=15).extra({"hour": "(strftime(\"%H\", \"timestamp\")+3)%24"}).\
-        values('hour').annotate(c=django.db.models.Count('rid'))
-    ds = DataPool(
-        series=
-        [{'options': {
-            'source': lowperhour},
-          'terms': [
-              'c',
-              'hour']}
-        ])
-
-    cht = Chart(
-        datasource=ds,
-        series_options=
-        [{'options': {
-            'type': 'area',
-            'stacking': False},
-          'terms': {
-              'hour': [
-                  'c']
-          }}],
-        chart_options=
-        {'title': {
-            'text': 'Battery level'},
-         'xAxis': {
-             'title': {
-                 'text': 'Timestamp'}},
-         'yAxis': {'max': 100}}
-    )
-    return render(request, "webapp/status.html", {"batterychart": cht})
+    lowperhour = BatteryStatus.objects.filter(level__lt=15).extra({'hr': "(strftime('%H', timestamp)+3) % 24"}).\
+        values('hr').annotate(c=Count('email', distinct=True))
+    opdata = BaseStation.objects.values('operator').annotate(num=Count('email', distinct=True))
+    opers = {'VODAFONE GR': 0, 'COSMOTE GR': 0}
+    for x in opdata:
+        key = x['operator'].upper()
+        if "VODAFONE" in key or "CU" in key:
+            opers['VODAFONE GR'] += x['num']
+        elif 'COSMOT' in key or 'COMSOTE' in key:
+            opers['COSMOTE GR'] += x['num']
+        else:
+            opers[key] = x['num']
+    srtdata = sorted(opers, reverse=True, key=opers.get)
+    print srtdata
+    operssrt = [(x, opers[x]) for x in srtdata]
+    return render(request, "webapp/stats.html", {"batterychart": lowperhour, "operators": operssrt})
