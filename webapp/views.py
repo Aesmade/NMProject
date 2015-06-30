@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http.response import HttpResponse
 from django.views.generic import ListView
-from django.db.models import Count, Avg, Min
+from django.db.models import Count, Avg
 from django.db.models.functions import Lower
 from models import *
 from django.db import transaction
