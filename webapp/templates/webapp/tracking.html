@@ -31,7 +31,7 @@
 		var bssicon = new L.icon({iconUrl: '{% static "webapp/bss.ico" %}', iconSize: [25, 25]});
 		var markers = [];
 		{% for i in wifi %}
-		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.frequency }}Hz'}).addTo(map));
+		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.freq }}Hz'}).addTo(map));
 		{% endfor %}
 		{% for i in bss %}
 		markers.push(new L.marker([{{ i.latitude }}, {{ i.longitude }}], {riseOnHover: true, title: 'Operator = {{ i.operator }}, MCC = {{ i.mcc }}, MNC = {{ i.mnc }}, CID = {{ i.cid }}, LAC = {{ i.lac }}', icon: bssicon}).addTo(map));
@@ -40,6 +40,16 @@
 		{% for i in gps %}
 		latlngs.push(new L.LatLng({{ i.latitude }}, {{ i.longitude }}));
 		{% endfor %}
+		{% if bestpath %}
+		var bestpoints = [];
+		var circleicon = new L.icon({iconUrl: '{% static "webapp/circle.png" %}', iconSize: [25, 25]});
+		{% for i in bestpath %}
+		bestpoints.push(new L.LatLng({{ i.0 }}, {{ i.1 }}));
+		new L.marker([{{ i.0 }}, {{ i.1 }}], {icon: circleicon, zIndexOffset: -1000}).addTo(map)
+		{% endfor %}
+		L.polyline(bestpoints, {color: 'black', weight: '2', dashArray: '5,5'}).addTo(map);
+		markers.push()
+		{% endif %}
 		var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 		markers.push(polyline);
 		var feats = L.featureGroup(markers);
