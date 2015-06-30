@@ -109,25 +109,29 @@ def show(request):
     sdate = datetime.datetime(*time.strptime(strstart, "%d/%m/%Y")[:3], tzinfo=UTC0030())
     edate = datetime.datetime(*time.strptime(strend, "%d/%m/%Y")[:3], tzinfo=UTC0030())
     wifires = WifiStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate)
-    wifires = list(wifires.values("ssid", "bssid", "realpos__latitude", "realpos__longitude",
-                                  ).annotate(RSSI=Avg("level"), freq=Avg("frequency"), ts=Min("timestamp")))
+    wifistats = list(wifires.values("ssid", "bssid", "realpos__latitude", "realpos__longitude", "timestamp"))
+    avgs = dict([(x['bssid'], (x['RSSI'], x['freq'])) for
+                 x in list(wifires.values("bssid").annotate(RSSI=Avg("level"), freq=Avg("frequency")))])
+    for i in wifistats:
+        i['RSSI'] = avgs[i['bssid']][0]
+        i['freq'] = avgs[i['bssid']][1]
     gpsres = list(GPSStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by("timestamp"))
     bssres = BaseStation.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate)
     bssres = bssres.exclude(latitude=-1.0).exclude(longitude=-1.0)
     sr = BatteryStatus.objects.filter(email=u, timestamp__gte=sdate, timestamp__lte=edate).order_by('timestamp')
     data = map(lambda x: [x.timestamp.astimezone(UTC0030()).strftime("%d-%m-%y %H:%M"), x.level], sr)
-    ctx = {"wifi": wifires, "gps": gpsres, "bss": bssres, "data": data}
+    ctx = {"wifi": wifistats, "gps": gpsres, "bss": bssres, "data": data}
     if request.POST.get("bestpath", "") == "on":
         bestpath = []
         for i in gpsres:
             bestv = -1
             bestt = (0, 0)
-            for j in wifires:
-                if abs((i.timestamp - j['ts']).total_seconds()) > 3600:
+            for j in wifistats:
+                if abs((i.timestamp - j['timestamp']).total_seconds()) > 3600:
                     continue
                 pdist = (math.cos((i.latitude+j['realpos__latitude'])/2) * (j['realpos__longitude']-i.longitude))**2 + \
                     (j['realpos__latitude']-i.latitude)**2
-                cur = abs((i.timestamp - j['ts']).total_seconds()) + abs(j['RSSI']) * 10 + pdist*10000000
+                cur = abs((i.timestamp - j['timestamp']).total_seconds()) + abs(j['RSSI']) * 10 + pdist*10000000
                 if bestv == -1 or cur < bestv:
                     bestv = cur
                     bestt = (j['realpos__latitude'], j['realpos__longitude'])
