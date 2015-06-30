@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<script>
+	google.load("visualization", "1", {packages:["corechart", "bar"]});
+	google.setOnLoadCallback(drawChart);
+	function drawChart() {
+
+		var data = google.visualization.arrayToDataTable([
+			['Hour', 'Low battery count'],
+			{% for x in batterychart %}
+			['{{ x.hr }}', {{ x.c }}],
+			{% endfor %}
+			]);
+
+		var options = {
+			bars: 'vertical',
+			hAxis: {title: 'Hour'}
+		};
+
+		var mat = new google.visualization.ColumnChart(document.getElementById('battery_chart'));
+		mat.draw(data, options);
+
+		var data2 = google.visualization.arrayToDataTable([
+			['Operator', 'Cell count'],
+			{% for x in operators %}
+			['{{ x.0 }}', {{ x.1 }}],
+			{% endfor %}
+			]);
+
+		var options2 = {
+			bars: 'horizontal',
+			hAxis: {title: 'Operator', showTextEvery: 1},
+			vAxis: {title: 'Count'}
+		};
+
+		var mat2 = new google.charts.Bar(document.getElementById('operator_chart'));
+		mat2.draw(data2, options2);
+	}
+</script>
+</head>
+<body>
+<div id="battery_chart" style="width: 90%; height: 200px;"></div><br /><hr /><br />
+<div id="operator_chart" style="width: 90%; height: 200px;"></div>
+</body>
+</html>
