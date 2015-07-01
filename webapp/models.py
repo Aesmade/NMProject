@@ -16,6 +16,7 @@ def tofloat(x):
 
 
 class BaseStation(models.Model):
+    # describes a base station record
     rid = models.IntegerField(default=-1)
     email = models.CharField(max_length=100)
     operator = models.CharField(max_length=100)
@@ -44,6 +45,7 @@ class BaseStation(models.Model):
 
 
 class BatteryStatus(models.Model):
+    # describes a battery status record
     rid = models.IntegerField(default=-1)
     email = models.CharField(max_length=100)
     level = models.IntegerField(default=-1)
@@ -66,6 +68,7 @@ class BatteryStatus(models.Model):
 
 
 class GPSStatus(models.Model):
+    #describes a GPS position record
     rid = models.IntegerField(default=-1)
     email = models.CharField(max_length=100)
     latitude = models.FloatField(default=-1.0)
@@ -84,6 +87,7 @@ class GPSStatus(models.Model):
 
 
 class WifiPos(models.Model):
+    #descibes a wifi position (average of positions from wifi statuses)
     ssid = models.CharField(max_length=100)
     bssid = models.CharField(max_length=100)
     latitude = models.FloatField(default=-1.0)
@@ -94,6 +98,7 @@ class WifiPos(models.Model):
 
 
 class WifiStatus(models.Model):
+    #descibes a wifi status record
     rid = models.IntegerField(default=-1)
     email = models.CharField(max_length=100)
     ssid = models.CharField(max_length=100)

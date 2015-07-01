@@ -7,6 +7,12 @@
 <script>
 	function map_init_basic (map, options) {
 		var markers = [];
+		{% if points %}
+		var wifiicon = new L.icon({iconUrl: '{% static "webapp/ap.ico" %}', iconSize: [15, 15]});
+		{% for i in points %}
+		L.marker([{{ i.latitude }}, {{ i.longitude }}], {icon: wifiicon, title: 'SSID = {{ i.ssid }}, Channel = {{ i.channel }}'}).addTo(map);
+		{% endfor %}
+		{% endif %}
 		{% for i in areas %}
 		markers.push(new L.marker([{{ i.0 }}, {{ i.1 }}]).addTo(map));
 		{% endfor %}

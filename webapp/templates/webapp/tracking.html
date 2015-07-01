@@ -31,7 +31,7 @@
 		var bssicon = new L.icon({iconUrl: '{% static "webapp/bss.ico" %}', iconSize: [25, 25]});
 		var markers = [];
 		{% for i in wifi %}
-		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.freq }}Hz'}).addTo(map));
+		markers.push(new L.marker([{{ i.realpos__latitude }}, {{ i.realpos__longitude }}], {icon:wifiicon, riseOnHover: true, title: 'SSID = {{ i.ssid }}, RSSI = {{ i.RSSI }}, Freq = {{ i.freq }}MHz'}).addTo(map));
 		{% endfor %}
 		{% for i in bss %}
 		markers.push(new L.marker([{{ i.latitude }}, {{ i.longitude }}], {riseOnHover: true, title: 'Operator = {{ i.operator }}, MCC = {{ i.mcc }}, MNC = {{ i.mnc }}, CID = {{ i.cid }}, LAC = {{ i.lac }}', icon: bssicon}).addTo(map));
